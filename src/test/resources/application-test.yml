@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: weather-mcp-server-test
+  ai:
+    mcp:
+      server:
+        name: weather-service-mcp-server-test
+        version: 1.0.0
+        description: "Test configuration for Weather Service MCP Server with WebFlux SSE Transport"
+        instructions: "A test MCP server that provides weather information"
+        capabilities:
+          tools: true
+          resources: true
+          prompts: true
+          completion: true
+        request-timeout: 180s
+        # SSE 端点配置 - 用于测试
+        sse-endpoint: "/sse"
+        sse-message-endpoint: "/mcp/messages"
+        tool-response-mimetypes:
+          getWeatherForecastByCity: "text/plain"
+          getWeatherForecastByLocation: "text/plain"
+          getCurrentWeather: "text/plain"
+          getAlerts: "text/plain"
+        notifications:
+          tools-changed: true
+          resources-changed: true
+          prompts-changed: true
+
+logging:
+  level:
+    org.springframework.ai.mcp: DEBUG
+    com.bhuang: DEBUG
+    org.springframework.web.reactive: DEBUG
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+
+server:
+  port: 0  # 使用随机端口进行测试
+
+# 管理端点配置（可选）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

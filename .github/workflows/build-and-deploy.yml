@@ -1,0 +1,250 @@
+name: Build and Deploy MCP Server to Alibaba Cloud
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置 JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: 运行 Maven 构建
+      run: mvn clean package -DskipTests
+      
+    - name: 运行测试
+      run: mvn test
+      
+    - name: 验证构建产物
+      run: ls -la target/
+        
+    - name: 设置 Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: 登录阿里云容器镜像服务
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ secrets.ALIBABA_CLOUD_REGISTRY }}
+        username: ${{ secrets.ALIBABA_CLOUD_USERNAME }}
+        password: ${{ secrets.ALIBABA_CLOUD_PASSWORD }}
+        
+    - name: 获取版本信息
+      id: version
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        IMAGE_TAG=${VERSION}-${SHORT_SHA}
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        
+    - name: 构建并推送 Docker 镜像
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest
+          ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:${{ steps.version.outputs.image_tag }}
+        platforms: linux/amd64
+        
+    - name: 显示镜像信息
+      run: |
+        echo "✅ MCP Server镜像构建并推送成功！"
+        echo "📦 镜像标签："
+        echo "   - ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest"
+        echo "   - ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:${{ steps.version.outputs.image_tag }}"
+        
+    - name: 📋 MCP Server 使用说明
+      run: |
+        echo ""
+        echo "🚀 ================== MCP Server 镜像使用指南 =================="
+        echo ""
+        echo "📝 1. 登录阿里云Docker Registry："
+        echo "   docker login --username=黄帅啊 ${{ secrets.ALIBABA_CLOUD_REGISTRY }}"
+        echo ""
+        echo "📦 2. 拉取镜像（选择其一）："
+        echo "   # 拉取最新版本"
+        echo "   docker pull ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest"
+        echo ""
+        echo "   # 拉取指定版本"
+        echo "   docker pull ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:${{ steps.version.outputs.image_tag }}"
+        echo ""
+        echo "🏃 3. 运行MCP Server容器："
+        echo "   # 基本运行（SSE端点: 8080端口）"
+        echo "   docker run -d --name bhuang-mcp-server -p 8080:8080 \\"
+        echo "     ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest"
+        echo ""
+        echo "   # 生产环境运行"
+        echo "   docker run -d --name bhuang-mcp-server -p 8080:8080 \\"
+        echo "     -e JAVA_OPTS=\"-Xms512m -Xmx1024m -Dspring.profiles.active=prod\" \\"
+        echo "     -e TZ=\"Asia/Shanghai\" \\"
+        echo "     --restart unless-stopped \\"
+        echo "     -v /data/logs:/app/logs \\"
+        echo "     ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest"
+        echo ""
+        echo "🐳 4. 使用 Docker Compose："
+        echo "   # 下载 docker-compose.yml 文件"
+        echo "   curl -O https://raw.githubusercontent.com/${{ github.repository }}/master/docker-compose.yml"
+        echo "   # 启动服务"
+        echo "   docker-compose up -d"
+        echo ""
+        echo "📊 5. MCP Server 监控和维护："
+        echo "   # 查看运行状态"
+        echo "   docker ps | grep bhuang-mcp-server"
+        echo "   # 查看实时日志"
+        echo "   docker logs -f bhuang-mcp-server"
+        echo "   # Spring Boot健康检查"
+        echo "   curl http://localhost:8080/actuator/health"
+        echo "   # MCP Server状态检查"
+        echo "   curl http://localhost:8080/actuator/info"
+        echo ""
+        echo "🔧 6. MCP 客户端连接："
+        echo "   # SSE端点连接"
+        echo "   curl -N -H \"Accept: text/event-stream\" http://localhost:8080/sse"
+        echo "   # 消息端点（需要先建立SSE连接获取sessionId）"
+        echo "   curl -X POST http://localhost:8080/mcp/messages?sessionId=YOUR_SESSION_ID \\"
+        echo "     -H \"Content-Type: application/json\" \\"
+        echo "     -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}'"
+        echo ""
+        echo "🛠️ 7. 一键部署脚本："
+        echo "   # 下载部署脚本"
+        echo "   curl -O https://raw.githubusercontent.com/${{ github.repository }}/master/deploy.sh"
+        echo "   chmod +x deploy.sh"
+        echo "   # 执行部署"
+        echo "   ./deploy.sh"
+        echo ""
+        echo "📚 8. MCP协议文档："
+        echo "   # Model Context Protocol规范"
+        echo "   echo \"https://spec.modelcontextprotocol.io/\""
+        echo "   # 本项目API文档"
+        echo "   echo \"http://localhost:8080/swagger-ui.html\""
+        echo ""
+        echo "=================================================="
+        echo "✨ 版本信息："
+        echo "   应用版本: ${{ steps.version.outputs.version }}"
+        echo "   Git提交: ${{ steps.version.outputs.short_sha }}"
+        echo "   镜像标签: ${{ steps.version.outputs.image_tag }}"
+        echo "   构建时间: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "   MCP协议版本: 2024-11-05"
+        echo "=================================================="
+        
+    - name: 📝 创建MCP Server部署总结
+      if: github.event_name == 'push'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const summary = `
+          ## 🚀 MCP Server 部署成功！
+          
+          ### 📦 镜像信息
+          - **项目名称**: Bhuang MCP Server with SSE Transport
+          - **最新版本**: \`${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest\`
+          - **指定版本**: \`${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:${{ steps.version.outputs.image_tag }}\`
+          
+          ### 🏃 快速开始
+          
+          #### 方式1: 直接运行
+          \`\`\`bash
+          # 登录阿里云
+          docker login --username=黄帅啊 ${{ secrets.ALIBABA_CLOUD_REGISTRY }}
+          
+          # 拉取并运行MCP Server
+          docker pull ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest
+          docker run -d --name bhuang-mcp-server -p 8080:8080 \\
+            -e JAVA_OPTS="-Xms512m -Xmx1024m" \\
+            -e TZ="Asia/Shanghai" \\
+            --restart unless-stopped \\
+            ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest
+          \`\`\`
+          
+          #### 方式2: Docker Compose
+          \`\`\`bash
+          curl -O https://raw.githubusercontent.com/${{ github.repository }}/master/docker-compose.yml
+          docker-compose up -d
+          \`\`\`
+          
+          #### 方式3: 一键部署
+          \`\`\`bash
+          curl -O https://raw.githubusercontent.com/${{ github.repository }}/master/deploy.sh
+          chmod +x deploy.sh && ./deploy.sh
+          \`\`\`
+          
+          ### 🔧 MCP 客户端连接
+          
+          #### 1. 建立SSE连接
+          \`\`\`bash
+          # 获取会话ID
+          curl -N -H "Accept: text/event-stream" http://localhost:8080/sse
+          \`\`\`
+          
+          #### 2. 发送MCP消息
+          \`\`\`bash
+          # 初始化请求
+          curl -X POST "http://localhost:8080/mcp/messages?sessionId=YOUR_SESSION_ID" \\
+            -H "Content-Type: application/json" \\
+            -d '{
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "initialize",
+              "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {}},
+                "clientInfo": {"name": "test-client", "version": "1.0.0"}
+              }
+            }'
+          
+          # 获取工具列表
+          curl -X POST "http://localhost:8080/mcp/messages?sessionId=YOUR_SESSION_ID" \\
+            -H "Content-Type: application/json" \\
+            -d '{"jsonrpc": "2.0", "id": 2, "method": "tools/list"}'
+          \`\`\`
+          
+          ### ✨ 版本详情
+          - **应用版本**: ${{ steps.version.outputs.version }}
+          - **Git提交**: ${{ steps.version.outputs.short_sha }}
+          - **MCP协议版本**: 2024-11-05
+          - **构建时间**: ${new Date().toISOString()}
+          
+          ### 📊 服务端点
+          - **SSE端点**: http://localhost:8080/sse
+          - **消息端点**: http://localhost:8080/mcp/messages
+          - **健康检查**: http://localhost:8080/actuator/health
+          - **应用信息**: http://localhost:8080/actuator/info
+          - **API文档**: http://localhost:8080/swagger-ui.html
+          
+          ### 🛠️ 监控命令
+          \`\`\`bash
+          # 查看运行状态
+          docker ps | grep bhuang-mcp-server
+          
+          # 查看日志
+          docker logs -f bhuang-mcp-server
+          
+          # 健康检查
+          curl http://localhost:8080/actuator/health
+          
+          # 测试SSE连接
+          curl -N -H "Accept: text/event-stream" http://localhost:8080/sse
+          \`\`\`
+          
+          ### 🔗 相关链接
+          - [Model Context Protocol 规范](https://spec.modelcontextprotocol.io/)
+          - [Spring AI MCP 文档](https://docs.spring.io/spring-ai/reference/api/mcp.html)
+          - [项目源码](https://github.com/${{ github.repository }})
+          `;
+          
+          await core.summary.addRaw(summary).write(); 

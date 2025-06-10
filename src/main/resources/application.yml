@@ -1,0 +1,49 @@
+# Weather Service MCP Server with WebFlux SSE Transport
+spring:
+  main:
+    banner-mode: off
+  application:
+    name: weather-mcp-server
+  ai:
+    mcp:
+      server:
+        name: weather-service-mcp-server
+        version: 1.0.0
+        type: ASYNC  # 推荐用于响应式应用程序
+        instructions: "这是一个基于WebFlux的响应式天气服务MCP服务器，提供天气预报、当前天气状况和天气警报等功能"
+        sse-message-endpoint: /mcp/messages
+        sse-endpoint: /sse
+        capabilities:
+          tool: true
+          resource: true
+          prompt: true
+          completion: true
+        # 工具响应MIME类型配置
+        tool-response-mime-type:
+          getWeatherForecastByLocation: text/plain
+          getWeatherForecastByCity: text/plain
+          getCurrentWeather: text/plain
+          getAlerts: text/plain
+        # 启用变更通知
+        tool-change-notification: true
+        resource-change-notification: true
+        prompt-change-notification: true
+        # 请求超时配置
+        request-timeout: 30s
+
+# 日志配置
+logging:
+  level:
+    com.bhuang: INFO
+    org.springframework.ai.mcp: DEBUG
+    org.springframework.web.reactive: INFO
+  file:
+    name: logs/${spring.application.name}.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 服务器配置
+server:
+  port: 9090
+
