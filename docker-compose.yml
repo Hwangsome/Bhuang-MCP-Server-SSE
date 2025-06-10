@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mcp-server:
-    image: bhuang-mcp-server-sse:latest
+    image: bhuang-mcp-server-sse:local-dev
     container_name: bhuang-mcp-server-sse
     ports:
       - "8088:9090"
