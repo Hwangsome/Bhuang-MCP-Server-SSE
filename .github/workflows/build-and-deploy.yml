@@ -137,17 +137,36 @@ jobs:
         echo "- **标签**: \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- **架构**: \`linux/amd64, linux/arm64\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🚀 部署命令" >> $GITHUB_STEP_SUMMARY
+        echo "### 🏷️ 本地标签简化" >> $GITHUB_STEP_SUMMARY
+        echo "拉取镜像后，可以创建简化的本地标签方便使用：" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "# 拉取镜像" >> $GITHUB_STEP_SUMMARY
+        echo "# 拉取远程镜像" >> $GITHUB_STEP_SUMMARY
         echo "docker pull ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "# 运行容器" >> $GITHUB_STEP_SUMMARY
+        echo "# 创建简化标签" >> $GITHUB_STEP_SUMMARY
+        echo "docker tag ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} mcp-server:latest" >> $GITHUB_STEP_SUMMARY
+        echo "docker tag ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} bhuang-mcp:latest" >> $GITHUB_STEP_SUMMARY
+        echo "docker tag ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }} mcp:prod" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# 验证简化标签" >> $GITHUB_STEP_SUMMARY
+        echo "docker images | grep -E '(mcp-server|bhuang-mcp|mcp)'" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🚀 部署命令" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "# 使用原始镜像名运行" >> $GITHUB_STEP_SUMMARY
         echo "docker run -d --name bhuang-mcp-server \\" >> $GITHUB_STEP_SUMMARY
         echo "  -p 8080:9090 \\" >> $GITHUB_STEP_SUMMARY
         echo "  -e JAVA_OPTS=\"-Xms512m -Xmx1024m -XX:+UseG1GC\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  -e TZ=\"Asia/Shanghai\" \\" >> $GITHUB_STEP_SUMMARY
         echo "  ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# 或使用简化标签运行" >> $GITHUB_STEP_SUMMARY
+        echo "docker run -d --name bhuang-mcp-server \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -p 8080:9090 \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -e JAVA_OPTS=\"-Xms512m -Xmx1024m -XX:+UseG1GC\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -e TZ=\"Asia/Shanghai\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  mcp-server:latest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🔗 服务端点" >> $GITHUB_STEP_SUMMARY
