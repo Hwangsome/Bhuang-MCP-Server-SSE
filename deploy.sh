@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 
 # 配置参数
 REGISTRY="registry.cn-hangzhou.aliyuncs.com"
-NAMESPACE="your-namespace"  # 请替换为您的命名空间
+NAMESPACE="bhuang"  # 您的阿里云命名空间
 IMAGE_NAME="bhuang-mcp-server-sse"
 VERSION="latest"
 CONTAINER_NAME="bhuang-mcp-server"
@@ -59,7 +59,7 @@ stop_existing_container() {
     fi
 }
 
-# 函数：拉取最新镜像
+# 函数：拉取镜像
 pull_image() {
     local full_image="${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${VERSION}"
     log_info "正在拉取镜像: $full_image"
@@ -67,7 +67,7 @@ pull_image() {
     if ! docker pull $full_image; then
         log_error "镜像拉取失败，请检查："
         echo "  1. 网络连接是否正常"
-        echo "  2. 镜像地址是否正确"
+        echo "  2. 镜像地址是否正确: $full_image"
         echo "  3. 是否已登录到镜像仓库: docker login $REGISTRY"
         exit 1
     fi
@@ -183,8 +183,8 @@ main() {
     if [ -n "$2" ]; then
         NAMESPACE="$2"
     else
-        read -p "请输入命名空间 (默认: your-namespace): " input_namespace
-        NAMESPACE=${input_namespace:-your-namespace}
+        read -p "请输入命名空间 (默认: bhuang): " input_namespace
+        NAMESPACE=${input_namespace:-bhuang}
     fi
     
     # 确认部署信息

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   bhuang-mcp-server:
-    image: ${REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${NAMESPACE:-your-namespace}/bhuang-mcp-server-sse:${VERSION:-latest}
+    image: ${REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${NAMESPACE:-bhuang}/bhuang-mcp-server-sse:${VERSION:-latest}
     container_name: bhuang-mcp-server
     restart: unless-stopped
     ports:

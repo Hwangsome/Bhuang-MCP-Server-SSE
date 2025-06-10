@@ -74,7 +74,7 @@ jobs:
         echo "🚀 ================== MCP Server 镜像使用指南 =================="
         echo ""
         echo "📝 1. 登录阿里云Docker Registry："
-        echo "   docker login --username=黄帅啊 ${{ secrets.ALIBABA_CLOUD_REGISTRY }}"
+        echo "   docker login --username=${{ secrets.ALIBABA_CLOUD_USERNAME }} ${{ secrets.ALIBABA_CLOUD_REGISTRY }}"
         echo ""
         echo "📦 2. 拉取镜像（选择其一）："
         echo "   # 拉取最新版本"
@@ -160,7 +160,7 @@ jobs:
           #### 方式1: 直接运行
           \`\`\`bash
           # 登录阿里云
-          docker login --username=黄帅啊 ${{ secrets.ALIBABA_CLOUD_REGISTRY }}
+          docker login --username=${{ secrets.ALIBABA_CLOUD_USERNAME }} ${{ secrets.ALIBABA_CLOUD_REGISTRY }}
           
           # 拉取并运行MCP Server
           docker pull ${{ secrets.ALIBABA_CLOUD_REGISTRY }}/${{ secrets.ALIBABA_CLOUD_NAMESPACE }}/bhuang-mcp-server-sse:latest
