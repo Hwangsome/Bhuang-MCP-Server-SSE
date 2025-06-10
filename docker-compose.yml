@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   bhuang-mcp-server:
-    image: ${REGISTRY:-registry.cn-hangzhou.aliyuncs.com}/${NAMESPACE:-bhuang}/bhuang-mcp-server-sse:${VERSION:-latest}
+    image: ${REGISTRY:-crpi-wzl2k45d0lxbiagj.cn-shenzhen.personal.cr.aliyuncs.com}/${NAMESPACE:-bhuang-repo}/bhuang-mcp-server-sse:${VERSION:-latest}
     container_name: bhuang-mcp-server
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8080:9090"
     environment:
       - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC
       - TZ=Asia/Shanghai
@@ -17,7 +17,7 @@ services:
     networks:
       - mcp-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

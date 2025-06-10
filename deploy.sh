@@ -14,12 +14,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 配置参数
-REGISTRY="registry.cn-hangzhou.aliyuncs.com"
-NAMESPACE="bhuang"  # 您的阿里云命名空间
+REGISTRY="crpi-wzl2k45d0lxbiagj.cn-shenzhen.personal.cr.aliyuncs.com"
+NAMESPACE="bhuang-repo"  # 您的阿里云命名空间
 IMAGE_NAME="bhuang-mcp-server-sse"
 VERSION="latest"
 CONTAINER_NAME="bhuang-mcp-server"
-PORT="8080"
+PORT="8080"  # 主机端口
+CONTAINER_PORT="9090"  # 容器内部端口
 
 # 显示横幅
 echo -e "${BLUE}"
@@ -84,7 +85,7 @@ run_container() {
     docker run -d \
         --name $CONTAINER_NAME \
         --restart unless-stopped \
-        -p $PORT:8080 \
+        -p $PORT:$CONTAINER_PORT \
         -e JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC" \
         -e TZ="Asia/Shanghai" \
         -e SPRING_PROFILES_ACTIVE="prod" \
@@ -130,8 +131,8 @@ show_service_info() {
     echo -e "${NC}"
     
     echo "🌐 服务地址:"
-    echo "   - SSE端点: http://localhost:$PORT/sse"
-    echo "   - 消息端点: http://localhost:$PORT/mcp/messages"
+    echo "   - MCP SSE端点: http://localhost:$PORT/mcp/events"
+    echo "   - MCP 消息端点: http://localhost:$PORT/mcp/messages"
     echo "   - 健康检查: http://localhost:$PORT/actuator/health"
     echo "   - 应用信息: http://localhost:$PORT/actuator/info"
     echo ""
@@ -155,8 +156,8 @@ show_service_info() {
     echo ""
     
     echo "🧪 快速测试:"
-    echo "   # 测试SSE连接"
-    echo "   curl -N -H \"Accept: text/event-stream\" http://localhost:$PORT/sse"
+    echo "   # 测试MCP SSE连接"
+    echo "   curl -N -H \"Accept: text/event-stream\" http://localhost:$PORT/mcp/events"
     echo ""
     echo "   # 测试健康状态"
     echo "   curl http://localhost:$PORT/actuator/health"
@@ -183,8 +184,8 @@ main() {
     if [ -n "$2" ]; then
         NAMESPACE="$2"
     else
-        read -p "请输入命名空间 (默认: bhuang): " input_namespace
-        NAMESPACE=${input_namespace:-bhuang}
+        read -p "请输入命名空间 (默认: bhuang-repo): " input_namespace
+        NAMESPACE=${input_namespace:-bhuang-repo}
     fi
     
     # 确认部署信息
@@ -195,7 +196,8 @@ main() {
     echo "  - 镜像名称: $IMAGE_NAME"
     echo "  - 镜像版本: $VERSION"
     echo "  - 容器名称: $CONTAINER_NAME"
-    echo "  - 服务端口: $PORT"
+    echo "  - 主机端口: $PORT"
+    echo "  - 容器内部端口: $CONTAINER_PORT"
     echo ""
     
     read -p "确认部署? (y/N): " confirm
