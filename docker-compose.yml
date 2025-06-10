@@ -1,23 +1,19 @@
 version: '3.8'
 
 services:
-  bhuang-mcp-server:
-    image: crpi-wzl2k45d0lxbiagj.cn-shenzhen.personal.cr.aliyuncs.com/bhuang-repo/bhuang-mcp-server-sse:latest
-    container_name: bhuang-mcp-server
-    restart: unless-stopped
+  mcp-server:
+    image: bhuang-mcp-server-sse:latest
+    container_name: bhuang-mcp-server-sse
     ports:
-      - "8080:9090"
+      - "8088:9090"
     environment:
-      - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC
       - TZ=Asia/Shanghai
-      - SPRING_PROFILES_ACTIVE=prod
-      - LOGGING_LEVEL_ROOT=INFO
-      - LOGGING_LEVEL_COM_BHUANG=DEBUG
+      - JAVA_OPTS=-Xms512m -Xmx1024m
     volumes:
       - ./logs:/app/logs
-      - /etc/localtime:/etc/localtime:ro
     networks:
       - mcp-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
       interval: 30s
@@ -47,7 +43,7 @@ networks:
     driver: bridge
 
 volumes:
-  logs:
+  mcp-logs:
     driver: local
   app-logs:
     driver: local
