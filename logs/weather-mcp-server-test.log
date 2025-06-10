@@ -483,3 +483,31 @@
 2025-06-10 14:02:05 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.netty.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
 2025-06-10 14:02:05 [netty-shutdown] INFO  o.s.b.w.e.netty.GracefulShutdown - Graceful shutdown complete
 2025-06-10 14:02:07 [SpringApplicationShutdownHook] INFO  c.b.i.CompleteMcpWorkflowTest - SSE连接关闭
+2025-06-10 22:18:10 [main] INFO  c.bhuang.service.WeatherServiceTest - Starting WeatherServiceTest using Java 17.0.13 with PID 30966 (started by bhuang in /Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE)
+2025-06-10 22:18:10 [main] DEBUG c.bhuang.service.WeatherServiceTest - Running with Spring Boot v3.5.0, Spring v6.2.7
+2025-06-10 22:18:10 [main] INFO  c.bhuang.service.WeatherServiceTest - The following 1 profile is active: "test"
+2025-06-10 22:18:10 [main] DEBUG o.s.w.r.f.s.s.RouterFunctionMapping - 1 RouterFunction(s) in 'routerFunctionMapping'
+2025-06-10 22:18:10 [main] DEBUG o.s.w.r.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2025-06-10 22:18:10 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2025-06-10 22:18:11 [main] DEBUG o.s.w.r.r.m.a.ControllerMethodResolver - ControllerAdvice beans: none
+2025-06-10 22:18:11 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable tools capabilities, notification: true
+2025-06-10 22:18:11 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Registered tools: 4
+2025-06-10 22:18:11 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable resources capabilities, notification: true
+2025-06-10 22:18:11 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable prompts capabilities, notification: true
+2025-06-10 22:18:11 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable completions capabilities
+2025-06-10 22:18:11 [main] INFO  c.bhuang.service.WeatherServiceTest - Started WeatherServiceTest in 0.828 seconds (process running for 1.258)
+2025-06-10 22:18:11 [main] ERROR i.n.r.d.DnsServerAddressStreamProviders - Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'. Use DEBUG level to see the full stack: java.lang.UnsatisfiedLinkError: failed to load the required native library
+2025-06-10 23:15:51 [main] INFO  c.bhuang.service.WeatherServiceTest - Starting WeatherServiceTest using Java 17.0.13 with PID 53706 (started by bhuang in /Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE)
+2025-06-10 23:15:51 [main] DEBUG c.bhuang.service.WeatherServiceTest - Running with Spring Boot v3.5.0, Spring v6.2.7
+2025-06-10 23:15:51 [main] INFO  c.bhuang.service.WeatherServiceTest - The following 1 profile is active: "test"
+2025-06-10 23:15:51 [main] DEBUG o.s.w.r.f.s.s.RouterFunctionMapping - 1 RouterFunction(s) in 'routerFunctionMapping'
+2025-06-10 23:15:51 [main] DEBUG o.s.w.r.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+2025-06-10 23:15:51 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2025-06-10 23:15:51 [main] DEBUG o.s.w.r.r.m.a.ControllerMethodResolver - ControllerAdvice beans: none
+2025-06-10 23:15:51 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable tools capabilities, notification: true
+2025-06-10 23:15:51 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Registered tools: 4
+2025-06-10 23:15:51 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable resources capabilities, notification: true
+2025-06-10 23:15:51 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable prompts capabilities, notification: true
+2025-06-10 23:15:51 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable completions capabilities
+2025-06-10 23:15:51 [main] INFO  c.bhuang.service.WeatherServiceTest - Started WeatherServiceTest in 0.917 seconds (process running for 1.474)
+2025-06-10 23:15:52 [main] ERROR i.n.r.d.DnsServerAddressStreamProviders - Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'. Use DEBUG level to see the full stack: java.lang.UnsatisfiedLinkError: failed to load the required native library

@@ -97,7 +97,7 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        platforms: linux/amd64
+        platforms: linux/amd64,linux/arm64
         labels: |
           org.opencontainers.image.title=Bhuang MCP Server SSE
           org.opencontainers.image.description=Weather Service MCP Server with SSE Transport
@@ -135,7 +135,7 @@ jobs:
         echo "### 📦 镜像信息" >> $GITHUB_STEP_SUMMARY
         echo "- **仓库**: \`${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- **标签**: \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **架构**: \`linux/amd64\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **架构**: \`linux/amd64, linux/arm64\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 🚀 部署命令" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY

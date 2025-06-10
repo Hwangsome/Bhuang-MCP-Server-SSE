@@ -45,3 +45,49 @@
 2025-06-10 20:38:43 [boundedElastic-1] ERROR i.n.r.d.DnsServerAddressStreamProviders - Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider, fallback to system defaults. This may result in incorrect DNS resolutions on MacOS. Check whether you have a dependency on 'io.netty:netty-resolver-dns-native-macos'. Use DEBUG level to see the full stack: java.lang.UnsatisfiedLinkError: failed to load the required native library
 2025-06-10 20:52:31 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.netty.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
 2025-06-10 20:52:31 [netty-shutdown] INFO  o.s.b.w.e.netty.GracefulShutdown - Graceful shutdown complete
+2025-06-10 21:48:27 [main] INFO  c.b.BhuangMcpServerSseApplication - Starting BhuangMcpServerSseApplication using Java 17.0.8.1 with PID 19397 (/Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE/target/classes started by bhuang in /Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE)
+2025-06-10 21:48:27 [main] INFO  c.b.BhuangMcpServerSseApplication - No active profile set, falling back to 1 default profile: "default"
+2025-06-10 21:48:27 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable tools capabilities, notification: true
+2025-06-10 21:48:27 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Registered tools: 4
+2025-06-10 21:48:27 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable resources capabilities, notification: true
+2025-06-10 21:48:27 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable prompts capabilities, notification: true
+2025-06-10 21:48:27 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable completions capabilities
+2025-06-10 21:48:28 [main] INFO  o.s.b.w.e.netty.NettyWebServer - Netty started on port 9090 (http)
+2025-06-10 21:48:28 [main] INFO  c.b.BhuangMcpServerSseApplication - Started BhuangMcpServerSseApplication in 0.757 seconds (process running for 2.174)
+2025-06-10 21:52:48 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.netty.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-06-10 21:52:48 [netty-shutdown] INFO  o.s.b.w.e.netty.GracefulShutdown - Graceful shutdown complete
+2025-06-10 21:53:19 [main] INFO  c.b.BhuangMcpServerSseApplication - Starting BhuangMcpServerSseApplication using Java 17.0.8.1 with PID 21268 (/Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE/target/classes started by bhuang in /Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE)
+2025-06-10 21:53:19 [main] INFO  c.b.BhuangMcpServerSseApplication - No active profile set, falling back to 1 default profile: "default"
+2025-06-10 21:53:19 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2025-06-10 21:53:19 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable tools capabilities, notification: true
+2025-06-10 21:53:19 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Registered tools: 4
+2025-06-10 21:53:19 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable resources capabilities, notification: true
+2025-06-10 21:53:19 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable prompts capabilities, notification: true
+2025-06-10 21:53:19 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable completions capabilities
+2025-06-10 21:53:20 [main] INFO  o.s.b.w.e.netty.NettyWebServer - Netty started on port 9090 (http)
+2025-06-10 21:53:20 [main] INFO  c.b.BhuangMcpServerSseApplication - Started BhuangMcpServerSseApplication in 1.182 seconds (process running for 3.298)
+2025-06-10 22:01:14 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.netty.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-06-10 22:01:14 [netty-shutdown] INFO  o.s.b.w.e.netty.GracefulShutdown - Graceful shutdown complete
+2025-06-10 23:14:37 [main] INFO  c.b.BhuangMcpServerSseApplication - Starting BhuangMcpServerSseApplication using Java 17.0.8.1 with PID 53207 (/Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE/target/classes started by bhuang in /Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE)
+2025-06-10 23:14:37 [main] INFO  c.b.BhuangMcpServerSseApplication - No active profile set, falling back to 1 default profile: "default"
+2025-06-10 23:14:38 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable tools capabilities, notification: true
+2025-06-10 23:14:38 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Registered tools: 4
+2025-06-10 23:14:38 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable resources capabilities, notification: true
+2025-06-10 23:14:38 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable prompts capabilities, notification: true
+2025-06-10 23:14:38 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable completions capabilities
+2025-06-10 23:14:38 [main] INFO  o.s.b.w.e.netty.NettyWebServer - Netty started on port 9090 (http)
+2025-06-10 23:14:38 [main] INFO  c.b.BhuangMcpServerSseApplication - Started BhuangMcpServerSseApplication in 0.85 seconds (process running for 1.096)
+2025-06-10 23:15:23 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.netty.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-06-10 23:15:23 [netty-shutdown] INFO  o.s.b.w.e.netty.GracefulShutdown - Graceful shutdown complete
+2025-06-10 23:15:30 [main] INFO  c.b.BhuangMcpServerSseApplication - Starting BhuangMcpServerSseApplication using Java 17.0.8.1 with PID 53523 (/Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE/target/classes started by bhuang in /Users/bhuang/code/spring-ai-demo/Bhuang-MCP-Server-SSE)
+2025-06-10 23:15:30 [main] INFO  c.b.BhuangMcpServerSseApplication - No active profile set, falling back to 1 default profile: "default"
+2025-06-10 23:15:31 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2025-06-10 23:15:31 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable tools capabilities, notification: true
+2025-06-10 23:15:31 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Registered tools: 4
+2025-06-10 23:15:31 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable resources capabilities, notification: true
+2025-06-10 23:15:31 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable prompts capabilities, notification: true
+2025-06-10 23:15:31 [main] INFO  o.s.a.m.s.a.McpServerAutoConfiguration - Enable completions capabilities
+2025-06-10 23:15:31 [main] INFO  o.s.b.w.e.netty.NettyWebServer - Netty started on port 9090 (http)
+2025-06-10 23:15:31 [main] INFO  c.b.BhuangMcpServerSseApplication - Started BhuangMcpServerSseApplication in 1.045 seconds (process running for 1.254)
+2025-06-10 23:15:41 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.netty.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-06-10 23:15:41 [netty-shutdown] INFO  o.s.b.w.e.netty.GracefulShutdown - Graceful shutdown complete
