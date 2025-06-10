@@ -10,7 +10,6 @@ services:
     environment:
       - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC
       - TZ=Asia/Shanghai
-      - SPRING_PROFILES_ACTIVE=prod
     volumes:
       - ./logs:/app/logs
       - /etc/localtime:/etc/localtime:ro
