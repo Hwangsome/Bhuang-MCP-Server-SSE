@@ -1,15 +1,21 @@
-name: Build and Deploy to Alibaba Cloud
+name: 🚀 构建并部署到阿里云
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
 
 env:
-  # 阿里云镜像仓库配置
+  # 阿里云容器镜像服务配置
   ALIBABA_CLOUD_REGISTRY: crpi-wzl2k45d0lxbiagj.cn-shenzhen.personal.cr.aliyuncs.com
-  ALIBABA_CLOUD_NAMESPACE: bhuang-repo
+  NAMESPACE: bhuang-repo
   IMAGE_NAME: bhuang-mcp-server-sse
 
 jobs:
@@ -17,230 +23,128 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 🚀 检出代码
-        uses: actions/checkout@v4
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
 
-      - name: ☕ 设置 JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
+    - name: ☕ 设置 JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
 
-      - name: 🔧 运行 Maven 构建
-        run: mvn clean package -DskipTests
+    - name: 📦 Maven 缓存
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
 
-      - name: 🧪 运行测试
-        run: mvn test
+    - name: 🔧 Maven 编译和测试
+      run: |
+        mvn clean compile test -q
+        echo "✅ Maven 编译和测试完成"
 
-      - name: 📦 验证构建产物
-        run: |
-          echo "📋 构建产物列表："
-          ls -la target/
-          echo ""
-          echo "✅ JAR 文件信息："
-          ls -lh target/*.jar
+    - name: 📦 打包应用
+      run: |
+        mvn package -DskipTests -q
+        echo "✅ 应用打包完成"
 
-      - name: 🐳 设置 Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🔐 登录阿里云容器镜像服务
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.ALIBABA_CLOUD_REGISTRY }}
-          username: ${{ secrets.ALIBABA_CLOUD_USERNAME }}
-          password: ${{ secrets.ALIBABA_CLOUD_PASSWORD }}
-
-      - name: 📝 获取版本信息
-        id: version
-        run: |
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          IMAGE_TAG_VERSION=${VERSION}-${SHORT_SHA}
-          IMAGE_TAG_TIMESTAMP=v${TIMESTAMP}-${SHORT_SHA}
-          
+    - name: 🏷️ 生成镜像标签
+      id: meta
+      run: |
+        # 基础镜像名
+        IMAGE_BASE="${ALIBABA_CLOUD_REGISTRY}/${NAMESPACE}/${IMAGE_NAME}"
+        
+        # 根据触发事件生成标签
+        if [[ $GITHUB_REF == refs/tags/v* ]]; then
+          # 标签推送：使用版本号
+          VERSION=${GITHUB_REF#refs/tags/v}
+          TAGS="${IMAGE_BASE}:${VERSION},${IMAGE_BASE}:latest"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
-          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
-          echo "image_tag_version=${IMAGE_TAG_VERSION}" >> $GITHUB_OUTPUT
-          echo "image_tag_timestamp=${IMAGE_TAG_TIMESTAMP}" >> $GITHUB_OUTPUT
-          
-          echo "📊 版本信息："
-          echo "  应用版本: ${VERSION}"
-          echo "  Git提交: ${SHORT_SHA}"
-          echo "  时间戳: ${TIMESTAMP}"
-          echo "  镜像标签: ${IMAGE_TAG_VERSION}, ${IMAGE_TAG_TIMESTAMP}"
+        elif [[ $GITHUB_REF == refs/heads/main ]] || [[ $GITHUB_REF == refs/heads/master ]]; then
+          # 主分支推送：使用latest和提交SHA
+          SHORT_SHA=${GITHUB_SHA::8}
+          TAGS="${IMAGE_BASE}:latest,${IMAGE_BASE}:${SHORT_SHA}"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "version=latest" >> $GITHUB_OUTPUT
+        else
+          # 其他分支：使用分支名和提交SHA
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          SHORT_SHA=${GITHUB_SHA::8}
+          SAFE_BRANCH=$(echo ${BRANCH_NAME} | sed 's/[^a-zA-Z0-9.-]/-/g')
+          TAGS="${IMAGE_BASE}:${SAFE_BRANCH}-${SHORT_SHA}"
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "version=${SAFE_BRANCH}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "🏷️ 生成的镜像标签: $(echo $TAGS | tr ',' '\n')"
 
-      - name: 🏗️ 构建并推送 Docker 镜像
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag_version }}
-            ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag_timestamp }}
-          platforms: linux/amd64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    - name: 🔐 登录阿里云容器镜像服务
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.ALIBABA_CLOUD_REGISTRY }}
+        username: ${{ secrets.ALIBABA_CLOUD_USERNAME }}
+        password: ${{ secrets.ALIBABA_CLOUD_PASSWORD }}
 
-      - name: ✅ 显示镜像信息
-        run: |
-          echo "🎉 镜像构建并推送成功！"
-          echo ""
-          echo "📦 推送的镜像标签："
-          echo "  🏷️ 最新版本: ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-          echo "  🏷️ 版本标签: ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag_version }}"
-          echo "  🏷️ 时间标签: ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag_timestamp }}"
+    - name: 🐳 设置 Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: 📋 生成使用指南
-        run: |
-          echo ""
-          echo "🚀 ================== 镜像使用指南 =================="
-          echo ""
-          echo "🔐 1. 登录阿里云Docker Registry："
-          echo "   docker login --username=黄帅啊 ${{ env.ALIBABA_CLOUD_REGISTRY }}"
-          echo ""
-          echo "📥 2. 拉取镜像（选择其一）："
-          echo "   # 拉取最新版本"
-          echo "   docker pull ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-          echo ""
-          echo "   # 拉取指定版本"
-          echo "   docker pull ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag_version }}"
-          echo ""
-          echo "   # 拉取时间戳版本"
-          echo "   docker pull ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.image_tag_timestamp }}"
-          echo ""
-          echo "🏃 3. 运行容器："
-          echo "   # 基本运行（注意：内部端口是9090）"
-          echo "   docker run -d --name bhuang-mcp-server \\"
-          echo "     -p 8080:9090 \\"
-          echo "     ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-          echo ""
-          echo "   # 完整配置运行"
-          echo "   docker run -d --name bhuang-mcp-server \\"
-          echo "     -p 8080:9090 \\"
-          echo "     -e JAVA_OPTS=\"-Xms512m -Xmx1024m\" \\"
-          echo "     -e TZ=\"Asia/Shanghai\" \\"
-          echo "     -e SPRING_PROFILES_ACTIVE=\"prod\" \\"
-          echo "     --restart unless-stopped \\"
-          echo "     ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-          echo ""
-          echo "🌐 4. VPC 网络优化（如果在阿里云 ECS 上部署）："
-          echo "   # 使用 VPC 内网地址，速度更快，不消耗公网流量"
-          echo "   docker login --username=黄帅啊 crpi-wzl2k45d0lxbiagj-vpc.cn-shenzhen.personal.cr.aliyuncs.com"
-          echo "   docker pull crpi-wzl2k45d0lxbiagj-vpc.cn-shenzhen.personal.cr.aliyuncs.com/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
-          echo ""
-          echo "🔍 5. 健康检查和监控："
-          echo "   # 查看容器状态"
-          echo "   docker ps"
-          echo "   # 查看应用日志"
-          echo "   docker logs -f bhuang-mcp-server"
-          echo "   # 健康检查"
-          echo "   curl http://localhost:8080/actuator/health"
-          echo "   # 访问 MCP SSE 端点"
-          echo "   curl http://localhost:8080/mcp/events"
-          echo ""
-          echo "=================================================="
-          echo "✨ 本次构建信息："
-          echo "   📅 构建时间: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          echo "   📋 应用版本: ${{ steps.version.outputs.version }}"
-          echo "   🔗 Git提交: ${{ steps.version.outputs.short_sha }}"
-          echo "   🏷️ 镜像标签: ${{ steps.version.outputs.image_tag_version }}"
-          echo "=================================================="
+    - name: 🔨 构建并推送 Docker 镜像
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        platforms: linux/amd64,linux/arm64
+        labels: |
+          org.opencontainers.image.title=Bhuang MCP Server SSE
+          org.opencontainers.image.description=Weather Service MCP Server with SSE Transport
+          org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-      - name: 📝 创建部署总结
-        if: github.event_name == 'push'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const registry = '${{ env.ALIBABA_CLOUD_REGISTRY }}';
-            const namespace = '${{ env.ALIBABA_CLOUD_NAMESPACE }}';
-            const imageName = '${{ env.IMAGE_NAME }}';
-            const versionTag = '${{ steps.version.outputs.image_tag_version }}';
-            const timestampTag = '${{ steps.version.outputs.image_tag_timestamp }}';
-            
-            const summary = `
-            ## 🚀 部署成功！
-            
-            ### 📦 镜像信息
-            - **最新版本**: \`${registry}/${namespace}/${imageName}:latest\`
-            - **版本标签**: \`${registry}/${namespace}/${imageName}:${versionTag}\`
-            - **时间标签**: \`${registry}/${namespace}/${imageName}:${timestampTag}\`
-            
-            ### 🏃 快速开始
-            
-            #### 🔐 登录阿里云仓库
-            \`\`\`bash
-            docker login --username=黄帅啊 ${registry}
-            \`\`\`
-            
-            #### 🚀 拉取并运行（推荐）
-            \`\`\`bash
-            # 拉取最新镜像
-            docker pull ${registry}/${namespace}/${imageName}:latest
-            
-            # 运行容器（注意端口映射 8080:9090）
-            docker run -d --name bhuang-mcp-server \\
-              -p 8080:9090 \\
-              -e JAVA_OPTS="-Xms512m -Xmx1024m" \\
-              -e TZ="Asia/Shanghai" \\
-              --restart unless-stopped \\
-              ${registry}/${namespace}/${imageName}:latest
-            \`\`\`
-            
-            #### 🌐 VPC 内网加速（阿里云 ECS）
-            \`\`\`bash
-            # 使用 VPC 内网地址，速度更快
-            docker login --username=黄帅啊 crpi-wzl2k45d0lxbiagj-vpc.cn-shenzhen.personal.cr.aliyuncs.com
-            docker pull crpi-wzl2k45d0lxbiagj-vpc.cn-shenzhen.personal.cr.aliyuncs.com/${namespace}/${imageName}:latest
-            \`\`\`
-            
-            ### ✨ 版本详情
-            - **应用版本**: ${{ steps.version.outputs.version }}
-            - **Git提交**: ${{ steps.version.outputs.short_sha }}
-            - **构建时间**: ${new Date().toISOString()}
-            
-            ### 📊 应用访问
-            - **访问地址**: http://localhost:8080
-            - **健康检查**: http://localhost:8080/actuator/health
-            - **MCP SSE端点**: http://localhost:8080/mcp/events
-            - **查看日志**: \`docker logs -f bhuang-mcp-server\`
-            
-            ### 🛠️ 一键部署脚本
-            \`\`\`bash
-            curl -O https://raw.githubusercontent.com/${{ github.repository }}/master/deploy.sh
-            chmod +x deploy.sh && ./deploy.sh
-            \`\`\`
-            `;
-            
-            await core.summary.addRaw(summary).write();
+    - name: 📋 部署信息
+      run: |
+        echo "## 🎉 部署成功!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 镜像信息" >> $GITHUB_STEP_SUMMARY
+        echo "- **仓库**: \`${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **标签**: \`${{ steps.meta.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **架构**: \`linux/amd64, linux/arm64\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🚀 部署命令" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "# 拉取镜像" >> $GITHUB_STEP_SUMMARY
+        echo "docker pull ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# 运行容器" >> $GITHUB_STEP_SUMMARY
+        echo "docker run -d --name bhuang-mcp-server \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -p 8080:9090 \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -e JAVA_OPTS=\"-Xms512m -Xmx1024m -XX:+UseG1GC\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  -e TZ=\"Asia/Shanghai\" \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔗 服务端点" >> $GITHUB_STEP_SUMMARY
+        echo "- **健康检查**: \`http://localhost:8080/actuator/health\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **MCP SSE**: \`http://localhost:8080/sse\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **MCP 消息**: \`http://localhost:8080/mcp/messages\`" >> $GITHUB_STEP_SUMMARY
 
-      - name: 🎯 Docker Compose 配置
-        if: github.event_name == 'push'
-        run: |
-          echo "📝 生成 Docker Compose 配置建议："
-          echo ""
-          cat << 'EOF'
-          # docker-compose.yml 示例配置
-          version: '3.8'
-          services:
-            bhuang-mcp-server:
-              image: ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.ALIBABA_CLOUD_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
-              container_name: bhuang-mcp-server
-              ports:
-                - "8080:9090"
-              environment:
-                - JAVA_OPTS=-Xms512m -Xmx1024m
-                - TZ=Asia/Shanghai
-                - SPRING_PROFILES_ACTIVE=prod
-              restart: unless-stopped
-              healthcheck:
-                test: ["CMD", "curl", "-f", "http://localhost:9090/actuator/health"]
-                interval: 30s
-                timeout: 10s
-                retries: 3
-                start_period: 40s
-          EOF 
+  # 仅在主分支成功部署后执行
+  notify-success:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+    - name: 🎉 部署成功通知
+      run: |
+        echo "🚀 Bhuang MCP Server SSE 已成功部署到阿里云!"
+        echo "📦 镜像地址: ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:latest"
+        echo "🔗 可以通过以下命令拉取和运行:"
+        echo "   docker pull ${{ env.ALIBABA_CLOUD_REGISTRY }}/${{ env.NAMESPACE }}/${{ env.IMAGE_NAME }}:latest" 

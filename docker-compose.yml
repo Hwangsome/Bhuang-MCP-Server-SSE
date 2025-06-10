@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   bhuang-mcp-server:
-    image: ${REGISTRY:-crpi-wzl2k45d0lxbiagj.cn-shenzhen.personal.cr.aliyuncs.com}/${NAMESPACE:-bhuang-repo}/bhuang-mcp-server-sse:${VERSION:-latest}
+    image: crpi-wzl2k45d0lxbiagj.cn-shenzhen.personal.cr.aliyuncs.com/bhuang-repo/bhuang-mcp-server-sse:latest
     container_name: bhuang-mcp-server
     restart: unless-stopped
     ports:
@@ -10,6 +10,9 @@ services:
     environment:
       - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC
       - TZ=Asia/Shanghai
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_BHUANG=DEBUG
     volumes:
       - ./logs:/app/logs
       - /etc/localtime:/etc/localtime:ro
@@ -20,12 +23,24 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
     logging:
       driver: "json-file"
       options:
         max-size: "100m"
         max-file: "3"
+    labels:
+      - "app=bhuang-mcp-server"
+      - "env=production"
+      - "version=latest"
 
 networks:
   mcp-network:
@@ -33,4 +48,6 @@ networks:
 
 volumes:
   logs:
+    driver: local
+  app-logs:
     driver: local
